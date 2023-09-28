@@ -21,7 +21,7 @@ namespace JwtDemo.Controllers
         }
 
         //[Authorize]
-        [HttpGet(Name = "GetWeatherForecast")]
+        [HttpGet(Name = "GetWeatherForecast"), Authorize(Roles = "Admin")]
         public IEnumerable<WeatherForecast> Get()
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
@@ -33,7 +33,7 @@ namespace JwtDemo.Controllers
             .ToArray();
         }
 
-        [AllowAnonymous]
+        [Authorize(Roles = "User")]
         [HttpGet("{id}")]
         public IEnumerable<WeatherForecast> GetById(int id)
         {

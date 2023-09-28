@@ -1,4 +1,5 @@
-﻿using JwtDemo.Dtos;
+﻿using JwtDemo.Data;
+using JwtDemo.Dtos;
 using JwtDemo.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,40 +14,47 @@ namespace JwtDemo.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private static User _user = new User();
         private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public AuthController(IConfiguration config)
+        public AuthController(IConfiguration config, AppDbContext context)
         {
             _config = config;
+            _context = context;
         }
 
         [HttpPost("register")]
-        public IActionResult Register(UserRegistrationDto dto)
+        public async Task<IActionResult> Register(UserRegistrationDto dto)
         {
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            _user.Username = dto.Username;
-            _user.PasswordHash = passwordHash;
-            _user.Email = dto.Email;
+            var user = new User
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Email = dto.Email,
+                Username = dto.Username,
+                PasswordHash = passwordHash
+            };
 
-            return Ok(_user);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(user);
         }
 
         [HttpPost("login")]
         public IActionResult Login(UserLoginDto dto)
         {
-            if (dto.Username != _user.Username)
-            {
-                return BadRequest("User not found.");
-            }
+            var user = _context.Users.SingleOrDefault(x => x.Username == dto.Username);
 
-            if (!BCrypt.Net.BCrypt.Verify(dto.Password, _user.PasswordHash))
-            {
-                return BadRequest("Wrong password.");
-            }
+            if (user == null)
+                return BadRequest("Username or password.");
 
-            string token = GenerateToken(_user);
+            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                return BadRequest("Username or password.");
+
+            string token = GenerateToken(user);
 
             return Ok(token);
         }
@@ -71,8 +79,7 @@ namespace JwtDemo.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Username),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, "Admin"),
-                //new Claim(ClaimTypes.Role, "User"),
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Secret").Value!));
