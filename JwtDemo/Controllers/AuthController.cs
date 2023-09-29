@@ -57,7 +57,7 @@ namespace JwtDemo.Controllers
 
             string token = GenerateToken(user);
 
-            return Ok(token);
+            return Ok(new { token });
         }
 
         [HttpGet, Authorize]
@@ -85,8 +85,16 @@ namespace JwtDemo.Controllers
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Secret").Value!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-            var token = new JwtSecurityToken(claims: claims, expires: DateTime.Now.AddHours(1), signingCredentials: creds);
+            var expiretime = DateTime.Now.AddHours(1);
+            var token = new JwtSecurityToken(claims: claims, expires: expiretime, signingCredentials: creds);
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            CookieOptions cookieOptions = new CookieOptions()
+            {
+                Expires = expiretime,
+                Secure = true
+            };
+            Response.Cookies.Append("jwt-token", jwt, cookieOptions);
 
             return jwt;
         }
