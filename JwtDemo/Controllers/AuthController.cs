@@ -50,10 +50,10 @@ namespace JwtDemo.Controllers
             var user = _context.Users.SingleOrDefault(x => x.Username == dto.Username);
 
             if (user == null)
-                return BadRequest("Username or password.");
+                return BadRequest("Username or password incorrect.");
 
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                return BadRequest("Username or password.");
+                return BadRequest("Username or password incorrect.");
 
             string token = GenerateToken(user);
 
@@ -77,7 +77,7 @@ namespace JwtDemo.Controllers
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
