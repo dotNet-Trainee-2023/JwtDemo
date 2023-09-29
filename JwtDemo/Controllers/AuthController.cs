@@ -34,7 +34,8 @@ namespace JwtDemo.Controllers
                 LastName = dto.LastName,
                 Email = dto.Email,
                 Username = dto.Username,
-                PasswordHash = passwordHash
+                PasswordHash = passwordHash,
+                Role = dto.Role
             };
 
             _context.Users.Add(user);
