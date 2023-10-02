@@ -1,4 +1,5 @@
 using JwtDemo.Data;
+using JwtDemo.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -52,6 +53,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
+app.UseStaticFiles();
 
 app.UseCors("CorsPolicy");
 

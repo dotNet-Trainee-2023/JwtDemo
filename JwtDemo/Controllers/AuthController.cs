@@ -3,6 +3,7 @@ using JwtDemo.Dtos;
 using JwtDemo.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -26,22 +27,33 @@ namespace JwtDemo.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserRegistrationDto dto)
         {
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-            var user = new User
-            {
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                Email = dto.Email,
-                Username = dto.Username,
-                PasswordHash = passwordHash,
-                Role = dto.Role
-            };
+                var user = new User
+                {
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    Email = dto.Email,
+                    Username = dto.Username,
+                    PasswordHash = passwordHash,
+                    Role = dto.Role
+                };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+                //var findUser = _context.Users.SingleOrDefault(x => x.Username == dto.Username);
+                //if (findUser != null)
+                //{
+                //    return BadRequest("Username Exists");
+                //}
+                //findUser = _context.Users.SingleOrDefault(x => x.Email == dto.Email);
+                //if (findUser != null)
+                //{
+                //    return BadRequest("Email Exists");
+                //}
 
-            return Ok(user);
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                return Ok(user);
         }
 
         [HttpPost("login")]
